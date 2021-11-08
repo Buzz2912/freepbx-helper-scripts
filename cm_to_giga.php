@@ -1,8 +1,6 @@
 <?php
 
-// edit Name of Group in Contact Manager
-$contact_manager_group = isset($_GET['cgroup']) ? $_GET['cgroup'] : "SomeName"; // <-- Edit "SomeName" to make your own default
-
+$contact_manager_group = isset($_GET['cgroup']) ? $_GET['cgroup'] : "praxis_extern"; // <-- Edit "SomeName" to make your own default
 
 
 function quoted ($S) { return "\"$S\""; } 
@@ -12,11 +10,11 @@ function Ausgabe($S)
 
 class entry
 {   
-    public $Items = ['home1'=>'', 'name'=>'', 'office2'=>'', 'office1'=>'', 'mobile2'=>'', 'mobile1'=>'', 'surname'=>'', 'home2'=>''];   
+    public $Items = ['home2'=>'','surname'=>'', 'mobile1'=>'', 'mobile2'=>'', 'office1'=>'', 'office2'=>'', 'name'=>'', 'home1'=>''];   # exakt diese Reihenfolge ?!?
     public $MyTypeTranslation = ['home'=>'home','work'=>'office','cell'=>'mobile'];   
     public $DisplayName = 'xxx kein gültiger Eintrag! xxx';
-    public $TelNums = [];    
-    public $numbers = 0;     
+    public $TelNums = [];    # z.B. "mobile" => ["017644405079","0154673"];    # speichert alle Nummern für mobile ev. auch mehr als 2
+    public $numbers = 0;     # nur wenn Nummern gesammelt wurden wird die entry Zeile geschrieben
     public function __construct($DisplayName)
            {
                if ($DisplayName != '') $this->DisplayName = $DisplayName;
@@ -34,8 +32,8 @@ class entry
            }
     public function BuildXMLZeile()
            {
-              if ($this->numbers < 1) return;  
-               
+              if ($this->numbers < 1) return;  # keine Nummern erfasst
+              #Bilde Items für Ausprägung 1 und 2 aus den erkannten Telefonnummern 
               foreach ($this->TelNums as $key=>$Nums)
                 {  
                    for ($i=0; $i<2; $i++)  
@@ -52,9 +50,7 @@ class entry
               Ausgabe($E."/>");
           }  # end function Build..
                  
-} 
-
-
+} # end class entry
 
 
 header("Content-Type: text/xml");
@@ -84,19 +80,18 @@ if (DB::IsError($res)) {
         $contacts[$i] = $contact;
     }
 
-
 Ausgabe ("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 Ausgabe("<!DOCTYPE LocalDirectory>");
 Ausgabe("<list>");
 
 $Entry = new entry('');
     foreach ($contacts as $contact) 
-    {
+    {   
         $DispName = $contact['displayname'];
         $TelNum   = $contact['number'];
         $Type     = $contact['type'];
         if ($DispName == '') continue;
-        if ($DispName != $Entry->DisplayName) 
+        if ($DispName != $Entry->DisplayName) # also neuer Name
            {  
               $Entry->BuildXMLZeile();
               $Entry = new entry($DispName);
@@ -108,6 +103,6 @@ $Entry->BuildXMLZeile();
 
 Ausgabe ("</list>");
     
-} 
+}
 
 ?>
